@@ -1,0 +1,42 @@
+export const YEAR = '2025';
+
+export const TEAM_COLORS = {
+  McLaren: '#FF8000',
+  'Red Bull': '#3671C6',
+  Ferrari: '#E8002D',
+  Mercedes: '#27F4D2',
+  'Aston Martin': '#229971',
+  Alpine: '#FF87BC',
+  'Alpine F1 Team': '#FF87BC',
+  Williams: '#64C4FF',
+  'RB F1 Team': '#6692FF',
+  RB: '#6692FF',
+  'Kick Sauber': '#52E252',
+  Sauber: '#52E252',
+  'Haas F1 Team': '#B6BABD',
+  Haas: '#B6BABD',
+  Audi: '#E4002B',
+};
+
+export const FLAGS = {
+  British: '🇬🇧',
+  Dutch: '🇳🇱',
+  Monegasque: '🇲🇨',
+  Spanish: '🇪🇸',
+  Australian: '🇦🇺',
+  German: '🇩🇪',
+  Mexican: '🇲🇽',
+  Finnish: '🇫🇮',
+  French: '🇫🇷',
+  Canadian: '🇨🇦',
+  Japanese: '🇯🇵',
+  Thai: '🇹🇭',
+  Danish: '🇩🇰',
+  Chinese: '🇨🇳',
+  American: '🇺🇸',
+  Brazilian: '🇧🇷',
+  Argentine: '🇦🇷',
+  Italian: '🇮🇹',
+  'New Zealander': '🇳🇿',
+  Austrian: '🇦🇹',
+};
