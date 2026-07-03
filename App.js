@@ -7,6 +7,8 @@ import StandingsScreen from './screens/StandingsScreen';
 import DriverDetailScreen from './screens/DriverDetailScreen';
 import ScheduleScreen from './screens/ScheduleScreen';
 import RaceDetailScreen from './screens/RaceDetailScreen';
+import TeamsScreen from './screens/TeamsScreen';
+import ConstructorDetailScreen from './screens/ConstructorDetailScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -29,6 +31,15 @@ function StandingsStack() {
   );
 }
 
+function TeamsStack() {
+  return (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="TeamsList" component={TeamsScreen} />
+      <Stack.Screen name="ConstructorDetail" component={ConstructorDetailScreen} />
+    </Stack.Navigator>
+  );
+}
+
 export default function App() {
   return (
     <NavigationContainer>
@@ -42,6 +53,7 @@ export default function App() {
         <Tab.Screen name="Live" component={LiveScreen} options={{ tabBarLabel: '🏁 Live' }} />
         <Tab.Screen name="Standings" component={StandingsStack} options={{ tabBarLabel: '🏆 Standings' }} />
         <Tab.Screen name="Schedule" component={ScheduleStack} options={{ tabBarLabel: '📅 Schedule' }} />
+        <Tab.Screen name="Teams" component={TeamsStack} options={{ tabBarLabel: '🏎️ Teams' }} />
       </Tab.Navigator>
     </NavigationContainer>
   );

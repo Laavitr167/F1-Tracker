@@ -175,7 +175,13 @@ export default function StandingsScreen({ navigation }) {
                 const teamName = c.Constructor.name;
                 const teamColor = TEAM_COLORS[teamName] || '#888';
                 return (
-                  <View key={c.position} style={[styles.row, i % 2 === 0 && styles.rowAlt]}>
+                  <TouchableOpacity
+                    key={c.position}
+                    style={[styles.row, i % 2 === 0 && styles.rowAlt]}
+                    onPress={() => navigation.navigate('ConstructorDetail', {
+                      constructorName: teamName,
+                      points: c.points,
+                    })}>
                     <View style={[styles.colorBar, { backgroundColor: teamColor }]} />
                     <Text style={[styles.rank, { width: 36 }]}>{c.position}</Text>
                     <View style={{ flex: 1 }}>
@@ -184,7 +190,7 @@ export default function StandingsScreen({ navigation }) {
                     <Text style={[styles.stat, { width: 54 }]}>{c.points}</Text>
                     <Text style={[styles.stat, { width: 42 }]}>{c.wins}</Text>
                     <Text style={[styles.stat, { width: 62 }]}>{constructorPodiums[teamName] || 0}</Text>
-                  </View>
+                  </TouchableOpacity>
                 );
               })}
         </ScrollView>
