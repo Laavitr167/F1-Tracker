@@ -34,11 +34,11 @@ export default function ConstructorDetailScreen({ route }) {
       .catch(() => setLoading(false));
   }, [constructorName]);
 
-  const teamColor = TEAM_COLORS[constructorName] || '#888';
+  const teamColor = TEAM_COLORS[constructorName] || '#E10600';
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: teamColor }]}> 
         <Text style={styles.headerText}>{constructorName}</Text>
         <Text style={styles.headerSub}>{points} pts · {YEAR}</Text>
       </View>

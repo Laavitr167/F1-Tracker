@@ -10,6 +10,19 @@ export default function DriverDetailScreen({ route, navigation }) {
   const teamColor = TEAM_COLORS[teamName] || '#888';
   const flag = FLAGS[driver.nationality] || '🏁';
 
+  const getResultBadgeColor = (result) => {
+    if (!result) return '#2a2a2a';
+    const status = result.status || '';
+    const isDNF = status !== 'Finished' && !/^[+][0-9]+ Lap[s]?$/.test(status);
+    if (isDNF) return '#5c2a2a';
+    const position = parseInt(result.position, 10);
+    if (position === 1) return '#FFD700';
+    if (position === 2) return '#C0C0C0';
+    if (position === 3) return '#CD7F32';
+    if (position >= 4 && position <= 10) return '#2a5c2a';
+    return '#2a2a2a';
+  };
+
   useEffect(() => {
     setLoading(true);
     fetch(`https://api.jolpi.ca/ergast/f1/${YEAR}/drivers/${driver.driverId}/results.json`)
@@ -54,6 +67,24 @@ export default function DriverDetailScreen({ route, navigation }) {
         <ActivityIndicator size="large" color="#E10600" style={{ marginTop: 40 }} />
       ) : (
         <ScrollView style={styles.list}>
+          <View style={styles.gridCard}>
+            <Text style={styles.gridTitle}>2025 Season</Text>
+            <View style={styles.gridWrap}>
+              {races.map((race) => {
+                const result = race.Results[0] || {};
+                const badgeColor = getResultBadgeColor(result);
+                return (
+                  <View key={race.round} style={styles.gridItem}>
+                    <View style={[styles.gridBox, { backgroundColor: badgeColor }]}> 
+                      <Text style={styles.gridBoxText}>{result.position || '—'}</Text>
+                    </View>
+                    <Text style={styles.gridRoundText}>{race.round}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+
           <View style={styles.colHeader}>
             <Text style={[styles.colText, { width: 36 }]}>Rnd</Text>
             <Text style={[styles.colText, { flex: 1 }]}>Race</Text>
@@ -112,4 +143,11 @@ const styles = StyleSheet.create({
   statBox: { flex: 1, alignItems: 'center' },
   statValue: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
   statLabel: { color: '#666', fontSize: 11, marginTop: 4 },
+  gridCard: { backgroundColor: '#1e1e1e', borderRadius: 12, margin: 12, padding: 12 },
+  gridTitle: { color: '#fff', fontSize: 14, fontWeight: '700', marginBottom: 8 },
+  gridWrap: { flexDirection: 'row', flexWrap: 'wrap' },
+  gridItem: { width: 42, alignItems: 'center', margin: 3 },
+  gridBox: { width: 36, height: 36, borderRadius: 4, justifyContent: 'center', alignItems: 'center' },
+  gridBoxText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  gridRoundText: { color: '#777', fontSize: 10, marginTop: 4 },
 });
