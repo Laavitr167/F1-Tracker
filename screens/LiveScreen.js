@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, ActivityIndicator, TouchableOpacity, RefreshControl } from 'react-native';
 import { TEAM_COLORS, YEAR } from '../constants';
 
 const TYRE_COLORS = {
@@ -46,6 +46,8 @@ export default function LiveScreen() {
   const [raceControlMsgs, setRaceControlMsgs] = useState([]);
   const [bestLaps, setBestLaps] = useState({});
   const [totalLaps, setTotalLaps] = useState(0);
+  const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const OF1 = 'https://api.openf1.org/v1';
 
@@ -137,6 +139,7 @@ export default function LiveScreen() {
   }
 
   async function loadData() {
+    setError(null);
     try {
       const [sess, nr] = await Promise.all([fetchLatestSession(), fetchNextRace()]);
       setNextRace(nr);
@@ -162,7 +165,7 @@ export default function LiveScreen() {
       setTotalLaps(lapsData.totalLaps);
       setLastUpdated(new Date());
     } catch (e) {
-      console.warn('Live fetch error', e);
+      setError('Failed to load data. Pull down to retry.');
     } finally {
       setLoading(false);
     }
@@ -185,6 +188,12 @@ export default function LiveScreen() {
     const t = setInterval(tick, 60000);
     return () => clearInterval(t);
   }, [nextRace]);
+
+  async function onRefresh() {
+    setRefreshing(true);
+    await loadData();
+    setRefreshing(false);
+  }
 
   useEffect(() => {
     loadData();
@@ -230,10 +239,42 @@ export default function LiveScreen() {
         <Text style={styles.headerText}>F1 Buddy</Text>
         <Text style={styles.headerSub}>{isLive ? '🔴 LIVE' : session ? 'Last Session' : 'Live'}</Text>
       </View>
-      {loading ? (
-        <ActivityIndicator size="large" color="#E10600" style={{ marginTop: 40 }} />
+      {error ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorEmoji}>📡</Text>
+          <Text style={styles.errorTitle}>Connection Error</Text>
+          <Text style={styles.errorSub}>{error}</Text>
+          <TouchableOpacity
+            onPress={() => { setError(null); loadData(); }}
+            style={styles.errorBtn}>
+            <Text style={styles.errorBtnText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      ) : loading ? (
+        <View style={{ marginTop: 12 }}>
+          {Array.from({ length: 8 }).map((_, index) => (
+            <View key={index} style={styles.skeletonRow}>
+              <View style={styles.skeletonBar} />
+              <View style={{ flex: 1 }}>
+                <View style={styles.skeletonLineLarge} />
+                <View style={styles.skeletonLineSmall} />
+              </View>
+              <View style={styles.skeletonLineFinal} />
+            </View>
+          ))}
+        </View>
       ) : (
-        <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.list}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor="#E10600"
+              colors={["#E10600"]}
+            />
+          }>
           {nextRace && (
             <View style={styles.countdownCard}>
               <View style={{ flex: 1 }}>
@@ -290,7 +331,7 @@ export default function LiveScreen() {
                 <Text style={[styles.colText, styles.colRight, { width: 44 }]}>Tyre</Text>
               </View>
               {rows.map((r, i) => (
-                <View key={r.driver_number} style={[styles.row, i % 2 === 0 && styles.rowAlt, { paddingHorizontal: 12 }]}>
+                <View key={r.driver_number} style={[styles.row, { paddingHorizontal: 12 }]}>
                   <View style={[styles.colorBar, { backgroundColor: r.teamColor }]} />
                   <Text style={[styles.rank, { width: 24 }]}>{r.position}</Text>
                   <View style={{ width: 26, height: 22, backgroundColor: '#2a2a2a', borderRadius: 3, justifyContent: 'center', alignItems: 'center', marginRight: 6 }}>
@@ -333,29 +374,28 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#121212' },
   header: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingTop: 56, paddingBottom: 16, backgroundColor: '#E10600',
+    paddingHorizontal: 20, paddingTop: 56, paddingBottom: 20, backgroundColor: '#0a0a0a', borderBottomWidth: 3, borderBottomColor: '#E10600',
   },
-  headerText: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
-  headerSub: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  headerText: { color: '#fff', fontSize: 22, fontWeight: '700', letterSpacing: -0.5 },
+  headerSub: { color: '#666', fontSize: 12, marginTop: 2 },
   list: { flex: 1 },
   colHeader: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 8,
-    borderBottomWidth: 1, borderBottomColor: '#2a2a2a',
+    paddingHorizontal: 20, paddingVertical: 16,
+    borderBottomWidth: 1, borderBottomColor: '#1f1f1f',
   },
   colText: { color: '#555', fontSize: 11, fontWeight: '600', letterSpacing: 0.4 },
   colRight: { textAlign: 'right' },
   row: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: '#1e1e1e',
+    paddingHorizontal: 20, paddingVertical: 16,
+    borderBottomWidth: 1, borderBottomColor: '#1f1f1f',
   },
-  rowAlt: { backgroundColor: '#161616' },
-  colorBar: { width: 3, height: 36, borderRadius: 2, marginRight: 12 },
+  colorBar: { width: 4, height: 40, borderRadius: 4, marginRight: 12 },
   rank: { color: '#888', fontSize: 13, fontWeight: '600' },
-  driverName: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  teamName: { color: '#666', fontSize: 11, marginTop: 2 },
-  stat: { color: '#fff', fontSize: 13, fontWeight: '500', textAlign: 'right' },
+  driverName: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  teamName: { color: '#666', fontSize: 12, letterSpacing: 0.2, marginTop: 2 },
+  stat: { color: '#fff', fontSize: 14, fontWeight: '600', textAlign: 'right' },
   sectionTitle: {
     color: '#555', fontSize: 10, fontWeight: '700', letterSpacing: 1,
     paddingHorizontal: 12, paddingVertical: 6, paddingTop: 12,
@@ -384,4 +424,58 @@ const styles = StyleSheet.create({
   rcMsg: { color: '#ccc', fontSize: 12, flex: 1, lineHeight: 18 },
   tyreBadge: { height: 22, borderRadius: 3, justifyContent: 'center', alignItems: 'center' },
   tyreText: { color: '#000', fontSize: 10, fontWeight: '800' },
+  skeletonRow: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 20, paddingVertical: 16,
+    borderBottomWidth: 1, borderBottomColor: '#1f1f1f',
+  },
+  skeletonBar: {
+    width: 4, height: 40, borderRadius: 4,
+    backgroundColor: '#1f1f1f', marginRight: 16,
+  },
+  skeletonLineLarge: {
+    height: 14, backgroundColor: '#1a1a1a',
+    borderRadius: 7, marginBottom: 8, width: '60%',
+  },
+  skeletonLineSmall: {
+    height: 11, backgroundColor: '#161616',
+    borderRadius: 6, width: '40%',
+  },
+  skeletonLineFinal: {
+    height: 14, backgroundColor: '#1a1a1a',
+    borderRadius: 7, width: 48,
+  },
+  errorContainer: {
+    flex: 1,
+    backgroundColor: '#121212',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+  },
+  errorEmoji: { fontSize: 48, marginBottom: 16 },
+  errorTitle: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  errorSub: {
+    color: '#555',
+    fontSize: 13,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  errorBtn: {
+    backgroundColor: '#E10600',
+    borderRadius: 10,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+  },
+  errorBtnText: {
+    color: '#fff',
+    fontWeight: '700',
+    fontSize: 14,
+  },
 });

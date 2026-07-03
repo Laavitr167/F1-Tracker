@@ -2,13 +2,21 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { TEAM_COLORS, FLAGS, YEAR } from '../constants';
 
+const COUNTRY_FLAGS = {
+  Australia: '🇦🇺', China: '🇨🇳', Japan: '🇯🇵', Bahrain: '🇧🇭', 'Saudi Arabia': '🇸🇦',
+  'United States': '🇺🇸', Italy: '🇮🇹', Monaco: '🇲🇨', Spain: '🇪🇸',
+  Canada: '🇨🇦', Austria: '🇦🇹', UK: '🇬🇧', Hungary: '🇭🇺', Belgium: '🇧🇪',
+  Netherlands: '🇳🇱', Singapore: '🇸🇬', Azerbaijan: '🇦🇿', Mexico: '🇲🇽',
+  Brazil: '🇧🇷', UAE: '🇦🇪', Qatar: '🇶🇦',
+};
+
 const sessions = ['FP1', 'FP2', 'FP3', 'Quali', 'Race'];
 const SESSION_ENDPOINTS = {
-  Race: round => `https://api.jolpi.ca/ergast/f1/${YEAR}/${round}/results.json`,
-  Quali: round => `https://api.jolpi.ca/ergast/f1/${YEAR}/${round}/qualifying.json`,
-  FP1: round => `https://api.jolpi.ca/ergast/f1/${YEAR}/${round}/fp1results.json`,
-  FP2: round => `https://api.jolpi.ca/ergast/f1/${YEAR}/${round}/fp2results.json`,
-  FP3: round => `https://api.jolpi.ca/ergast/f1/${YEAR}/${round}/fp3results.json`,
+  Race: (round) => `https://api.jolpi.ca/ergast/f1/${YEAR}/${round}/results.json`,
+  Quali: (round) => `https://api.jolpi.ca/ergast/f1/${YEAR}/${round}/qualifying.json`,
+  FP1: (round) => `https://api.jolpi.ca/ergast/f1/${YEAR}/${round}/fp1results.json`,
+  FP2: (round) => `https://api.jolpi.ca/ergast/f1/${YEAR}/${round}/fp2results.json`,
+  FP3: (round) => `https://api.jolpi.ca/ergast/f1/${YEAR}/${round}/fp3results.json`,
 };
 
 export default function RaceDetailScreen({ route, navigation }) {
@@ -21,18 +29,18 @@ export default function RaceDetailScreen({ route, navigation }) {
     setLoading(true);
     setResults([]);
     fetch(SESSION_ENDPOINTS[activeSession](race.round))
-      .then(r => r.json())
-      .then(data => {
+      .then((r) => r.json())
+      .then((data) => {
         const raceTable = data.MRData.RaceTable.Races;
         if (!raceTable || raceTable.length === 0) {
           setResults([]);
           setLoading(false);
           return;
         }
-        const r = raceTable[0];
-        if (activeSession === 'Race') setResults(r.Results || []);
-        else if (activeSession === 'Quali') setResults(r.QualifyingResults || []);
-        else setResults(r.PracticeResults || []);
+        const sessionRace = raceTable[0];
+        if (activeSession === 'Race') setResults(sessionRace.Results || []);
+        else if (activeSession === 'Quali') setResults(sessionRace.QualifyingResults || []);
+        else setResults(sessionRace.PracticeResults || []);
         setLoading(false);
       })
       .catch(() => {
@@ -46,18 +54,25 @@ export default function RaceDetailScreen({ route, navigation }) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={{ color: '#fff', fontSize: 16, marginRight: 12 }}>← Back</Text>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Text style={styles.backButtonText}>‹ Back</Text>
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
           <Text style={styles.headerText}>{race.raceName}</Text>
-          <Text style={{ color: '#ffcccc', fontSize: 11 }}>{race.Circuit.circuitName} · {race.date}</Text>
+          <Text style={styles.headerSub}>{race.Circuit.circuitName} · {race.date}</Text>
         </View>
+      </View>
+
+      <View style={styles.circuitInfoCard}>
+        <Text style={styles.circuitFlag}>{COUNTRY_FLAGS[race.Circuit.Location.country] || '🏁'}</Text>
+        <Text style={styles.circuitInfoTitle}>{race.Circuit.circuitName}</Text>
+        <Text style={styles.circuitInfoSubtitle}>{race.Circuit.Location.locality} · {race.Circuit.Location.country}</Text>
+        <Text style={styles.circuitInfoDate}>{race.date}</Text>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.sessionTabsScroll}>
         <View style={styles.sessionTabs}>
-          {sessions.map(s => (
+          {sessions.map((s) => (
             <TouchableOpacity
               key={s}
               style={[styles.sessionTab, activeSession === s && styles.sessionTabActive]}
@@ -98,7 +113,7 @@ export default function RaceDetailScreen({ route, navigation }) {
               timeStr = r.time || r.Time?.time || '—';
             }
             return (
-              <View key={i} style={[styles.row, i % 2 === 0 && styles.rowAlt]}>
+              <View key={i} style={styles.row}>
                 <View style={[styles.colorBar, { backgroundColor: teamColor }]} />
                 <Text style={[styles.rank, { width: 36 }]}>{pos}</Text>
                 <View style={{ flex: 1 }}>
@@ -119,10 +134,25 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#121212' },
   header: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingTop: 56, paddingBottom: 16, backgroundColor: '#E10600',
+    paddingHorizontal: 20, paddingTop: 56, paddingBottom: 20, backgroundColor: '#0a0a0a', borderBottomWidth: 3, borderBottomColor: '#E10600',
   },
-  headerText: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
-  sessionTabsScroll: { maxHeight: 48, borderBottomWidth: 1, borderBottomColor: '#2a2a2a' },
+  backButton: {
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 8,
+    padding: 8,
+    marginRight: 12,
+  },
+  backButtonText: { color: '#fff', fontSize: 15 },
+  headerText: { color: '#fff', fontSize: 22, fontWeight: '700', letterSpacing: -0.5 },
+  headerSub: { color: '#666', fontSize: 12, marginTop: 2 },
+  circuitInfoCard: {
+    backgroundColor: '#1e1e1e', borderRadius: 12, margin: 12, padding: 16,
+  },
+  circuitFlag: { fontSize: 32, marginBottom: 12 },
+  circuitInfoTitle: { color: '#fff', fontSize: 20, fontWeight: '700' },
+  circuitInfoSubtitle: { color: '#777', fontSize: 12, marginTop: 4 },
+  circuitInfoDate: { color: '#999', fontSize: 12, marginTop: 8 },
+  sessionTabsScroll: { maxHeight: 56, borderBottomWidth: 1, borderBottomColor: '#1f1f1f' },
   sessionTabs: { flexDirection: 'row', paddingHorizontal: 12 },
   sessionTab: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: 'transparent' },
   sessionTabActive: { borderBottomColor: '#E10600' },
@@ -138,10 +168,10 @@ const styles = StyleSheet.create({
   colRight: { textAlign: 'right' },
   row: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: '#1e1e1e',
+    paddingHorizontal: 20, paddingVertical: 16,
+    backgroundColor: '#0f0f0f',
+    borderBottomWidth: 1, borderBottomColor: '#1f1f1f',
   },
-  rowAlt: { backgroundColor: '#161616' },
   colorBar: { width: 3, height: 36, borderRadius: 2, marginRight: 12 },
   rank: { color: '#888', fontSize: 13, fontWeight: '600' },
   driverName: { color: '#fff', fontSize: 14, fontWeight: '600' },

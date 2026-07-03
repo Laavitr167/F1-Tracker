@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Image } from 'react-native';
 import Svg, { Polyline, Circle } from 'react-native-svg';
-import { TEAM_COLORS, FLAGS, YEAR } from '../constants';
+import SkeletonRow from '../components/SkeletonRow';
+import { TEAM_COLORS, FLAGS, YEAR, DRIVER_IMAGES } from '../constants';
 
 export default function StandingsScreen({ navigation }) {
   const [drivers, setDrivers] = useState([]);
@@ -74,6 +75,27 @@ export default function StandingsScreen({ navigation }) {
   const toX = i => pad.l + (numRounds <= 1 ? plotW / 2 : (i / (numRounds - 1)) * plotW);
   const toY = pts => pad.t + plotH - (pts / maxPts) * plotH;
 
+  function DriverAvatar({ driverId, name, color }) {
+    const [imgError, setImgError] = useState(false);
+    const uri = DRIVER_IMAGES[driverId];
+
+    if (!uri || imgError) {
+      return (
+        <View style={[styles.avatarFallback, { backgroundColor: `${color}33` }]}> 
+          <Text style={[styles.avatarInitials, { color }]}>{name?.slice(0, 2).toUpperCase()}</Text>
+        </View>
+      );
+    }
+
+    return (
+      <Image
+        source={{ uri }}
+        style={styles.avatarImage}
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -89,7 +111,11 @@ export default function StandingsScreen({ navigation }) {
         </TouchableOpacity>
       </View>
       {loading ? (
-        <ActivityIndicator size="large" color="#E10600" style={{ marginTop: 40 }} />
+        <View style={{ marginTop: 12 }}>
+          {Array.from({ length: 8 }).map((_, index) => (
+            <SkeletonRow key={index} />
+          ))}
+        </View>
       ) : (
         <ScrollView style={styles.list}>
           {tab === 'drivers' && chartDrivers.length > 0 && numRounds > 0 && (
@@ -158,13 +184,16 @@ export default function StandingsScreen({ navigation }) {
                       wins: d.wins,
                       podiums: driverPodiums[d.Driver.driverId] || 0,
                     })}
-                    style={[styles.row, i % 2 === 0 && styles.rowAlt]}>
+                    style={styles.row}>
                     <View style={[styles.colorBar, { backgroundColor: teamColor }]} />
                     <Text style={[styles.rank, { width: 36 }]}>{d.position}</Text>
+                    <View style={styles.driverRowLeft}>
+                    <DriverAvatar driverId={d.Driver.driverId} name={d.Driver.familyName} color={teamColor} />
                     <View style={{ flex: 1 }}>
                       <Text style={styles.driverName}>{flag} {d.Driver.givenName[0]}. {d.Driver.familyName}</Text>
                       <Text style={[styles.teamName, { color: teamColor }]}>{teamName}</Text>
                     </View>
+                  </View>
                     <Text style={[styles.stat, { width: 54 }]}>{d.points}</Text>
                     <Text style={[styles.stat, { width: 42 }]}>{d.wins}</Text>
                     <Text style={[styles.stat, { width: 62 }]}>{driverPodiums[d.Driver.driverId] || 0}</Text>
@@ -177,7 +206,7 @@ export default function StandingsScreen({ navigation }) {
                 return (
                   <TouchableOpacity
                     key={c.position}
-                    style={[styles.row, i % 2 === 0 && styles.rowAlt]}
+                    style={styles.row}
                     onPress={() => navigation.navigate('ConstructorDetail', {
                       constructorName: teamName,
                       points: c.points,
@@ -203,17 +232,17 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#121212' },
   header: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingTop: 56, paddingBottom: 16, backgroundColor: '#E10600',
+    paddingHorizontal: 20, paddingTop: 56, paddingBottom: 20, backgroundColor: '#0a0a0a', borderBottomWidth: 3, borderBottomColor: '#E10600',
   },
-  headerText: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
-  headerSub: { color: '#fff', fontSize: 13, fontWeight: '600' },
-  tabRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: '#2a2a2a' },
-  tabBtn: { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
+  headerText: { color: '#fff', fontSize: 22, fontWeight: '700', letterSpacing: -0.5 },
+  headerSub: { color: '#666', fontSize: 12, marginTop: 2 },
+  tabRow: { flexDirection: 'row', backgroundColor: '#0f0f0f', marginTop: 12, borderRadius: 12 },
+  tabBtn: { flex: 1, paddingVertical: 14, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
   tabBtnActive: { borderBottomColor: '#E10600' },
-  tabLabel: { color: '#666', fontSize: 13, fontWeight: '600' },
+  tabLabel: { color: '#aaa', fontSize: 13, fontWeight: '600', letterSpacing: 0.5 },
   tabLabelActive: { color: '#fff' },
   list: { flex: 1 },
-  chartCard: { backgroundColor: '#1e1e1e', borderRadius: 12, margin: 12, padding: 12 },
+  chartCard: { backgroundColor: '#0f0f0f', borderRadius: 16, borderWidth: 1, borderColor: '#1f1f1f', margin: 12, padding: 16 },
   chartTitle: { color: '#fff', fontSize: 14, fontWeight: '700', marginBottom: 12 },
   legendRow: { flexDirection: 'row', flexWrap: 'wrap', marginTop: 12 },
   legendItem: { flexDirection: 'row', alignItems: 'center', marginRight: 12, marginBottom: 6 },
@@ -221,20 +250,42 @@ const styles = StyleSheet.create({
   legendLabel: { color: '#aaa', fontSize: 11, fontWeight: '600' },
   colHeader: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 8,
-    borderBottomWidth: 1, borderBottomColor: '#2a2a2a',
+    paddingHorizontal: 20, paddingVertical: 16,
+    borderBottomWidth: 1, borderBottomColor: '#1f1f1f',
   },
   colText: { color: '#555', fontSize: 11, fontWeight: '600', letterSpacing: 0.4 },
   colRight: { textAlign: 'right' },
   row: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: '#1e1e1e',
+    paddingHorizontal: 20, paddingVertical: 16,
+    borderBottomWidth: 1, borderBottomColor: '#1f1f1f',
   },
-  rowAlt: { backgroundColor: '#161616' },
-  colorBar: { width: 3, height: 36, borderRadius: 2, marginRight: 12 },
+  driverRowLeft: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatarFallback: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  avatarInitials: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  avatarImage: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 10,
+  },
+  colorBar: { width: 4, height: 40, borderRadius: 4, marginRight: 12 },
   rank: { color: '#888', fontSize: 13, fontWeight: '600' },
-  driverName: { color: '#fff', fontSize: 14, fontWeight: '600' },
-  teamName: { color: '#666', fontSize: 11, marginTop: 2 },
-  stat: { color: '#fff', fontSize: 13, fontWeight: '500', textAlign: 'right' },
+  driverName: { color: '#fff', fontSize: 15, fontWeight: '600' },
+  teamName: { color: '#666', fontSize: 12, letterSpacing: 0.2, marginTop: 2 },
+  stat: { color: '#fff', fontSize: 14, fontWeight: '600', textAlign: 'right' },
 });

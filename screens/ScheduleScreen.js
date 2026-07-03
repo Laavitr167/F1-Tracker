@@ -28,13 +28,13 @@ export default function ScheduleScreen({ navigation }) {
         <ActivityIndicator size="large" color="#E10600" style={{ marginTop: 40 }} />
       ) : (
         <ScrollView style={styles.list}>
-          {races.map((race, i) => {
+          {races.map((race) => {
             const isPast = new Date(race.date) < today;
             return (
               <TouchableOpacity
                 key={race.round}
                 onPress={() => navigation.navigate('RaceDetail', { race })}
-                style={[styles.row, i % 2 === 0 && styles.rowAlt]}>
+                style={styles.row}>
                 <View style={[styles.colorBar, { backgroundColor: isPast ? '#444' : '#E10600' }]} />
                 <Text style={[styles.rank, { width: 36 }]}>{race.round}</Text>
                 <View style={{ flex: 1 }}>
@@ -60,17 +60,17 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#121212' },
   header: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingTop: 56, paddingBottom: 16, backgroundColor: '#E10600',
+    paddingHorizontal: 20, paddingTop: 56, paddingBottom: 20, backgroundColor: '#0a0a0a', borderBottomWidth: 3, borderBottomColor: '#E10600',
   },
   headerText: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
   headerSub: { color: '#fff', fontSize: 13, fontWeight: '600' },
   list: { flex: 1 },
   row: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 16, paddingVertical: 12,
-    borderBottomWidth: 1, borderBottomColor: '#1e1e1e',
+    paddingHorizontal: 20, paddingVertical: 16,
+    backgroundColor: '#0f0f0f',
+    borderBottomWidth: 1, borderBottomColor: '#1f1f1f',
   },
-  rowAlt: { backgroundColor: '#161616' },
   colorBar: { width: 3, height: 36, borderRadius: 2, marginRight: 12 },
   rank: { color: '#888', fontSize: 13, fontWeight: '600' },
   driverName: { color: '#fff', fontSize: 14, fontWeight: '600' },

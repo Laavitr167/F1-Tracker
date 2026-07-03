@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "F1Buddy",
-    "slug": "F1Buddy",
+    "name": "F1 Buddy",
+    "slug": "f1buddy",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#121212"
     },
     "ios": {
       "supportsTablet": true
