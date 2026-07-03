@@ -5,6 +5,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import LiveScreen from './screens/LiveScreen';
 import StandingsScreen from './screens/StandingsScreen';
 import DriverDetailScreen from './screens/DriverDetailScreen';
+import AnalyticsScreen from './screens/AnalyticsScreen';
 import ScheduleScreen from './screens/ScheduleScreen';
 import RaceDetailScreen from './screens/RaceDetailScreen';
 import TeamsScreen from './screens/TeamsScreen';
@@ -52,6 +53,7 @@ export default function App() {
         }}>
         <Tab.Screen name="Live" component={LiveScreen} options={{ tabBarLabel: '🏁 Live' }} />
         <Tab.Screen name="Standings" component={StandingsStack} options={{ tabBarLabel: '🏆 Standings' }} />
+        <Tab.Screen name="Analytics" component={AnalyticsScreen} options={{ tabBarLabel: '📊 Analytics' }} />
         <Tab.Screen name="Schedule" component={ScheduleStack} options={{ tabBarLabel: '📅 Schedule' }} />
         <Tab.Screen name="Teams" component={TeamsStack} options={{ tabBarLabel: '🏎️ Teams' }} />
       </Tab.Navigator>
